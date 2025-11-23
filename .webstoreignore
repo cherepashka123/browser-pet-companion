@@ -1,0 +1,17 @@
+# Files to exclude when packaging for Chrome Web Store
+node_modules/
+src/
+*.ts
+*.tsx
+tsconfig.json
+webpack.config.js
+package.json
+package-lock.json
+.git/
+.gitignore
+*.md
+!PRIVACY_POLICY.md
+dist/*.map
+*.log
+.DS_Store
+

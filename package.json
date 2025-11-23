@@ -1,0 +1,29 @@
+{
+  "name": "browser-pet-companion",
+  "version": "1.0.0",
+  "description": "A cozy AI-generated pet companion Chrome extension",
+  "scripts": {
+    "build": "NODE_ENV=production webpack --mode production",
+    "build:dev": "webpack --mode development",
+    "dev": "webpack --mode development --watch",
+    "type-check": "tsc --noEmit",
+    "clean": "rm -rf dist",
+    "package": "npm run build && cd .. && zip -r browser-pet-companion.zip browser-pet-companion/{manifest.json,popup.html,icons,dist,PRIVACY_POLICY.md} -x '*.map' '*.log' 'node_modules/*' 'src/*' '*.ts' '*.tsx' && echo '✅ Package created: browser-pet-companion.zip'"
+  },
+  "devDependencies": {
+    "@types/chrome": "^0.0.268",
+    "@types/react": "^18.2.66",
+    "@types/react-dom": "^18.2.22",
+    "css-loader": "^6.11.0",
+    "style-loader": "^3.3.3",
+    "ts-loader": "^9.5.1",
+    "typescript": "^5.3.3",
+    "webpack": "^5.89.0",
+    "webpack-cli": "^5.1.4"
+  },
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0"
+  }
+}
+

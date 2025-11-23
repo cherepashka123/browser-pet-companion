@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Privacy Policy - Browser Pet Companion</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #4a5568;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        .last-updated {
+            color: #718096;
+            font-size: 0.9em;
+            margin-bottom: 30px;
+        }
+        h2 {
+            color: #2d3748;
+            margin-top: 30px;
+            margin-bottom: 15px;
+            font-size: 1.5em;
+            border-bottom: 2px solid #e2e8f0;
+            padding-bottom: 10px;
+        }
+        h3 {
+            color: #4a5568;
+            margin-top: 20px;
+            margin-bottom: 10px;
+        }
+        p {
+            margin-bottom: 15px;
+            color: #4a5568;
+        }
+        ul, ol {
+            margin-left: 20px;
+            margin-bottom: 15px;
+        }
+        li {
+            margin-bottom: 8px;
+            color: #4a5568;
+        }
+        a {
+            color: #667eea;
+            text-decoration: none;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+        .highlight {
+            background: #f7fafc;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 2px solid #e2e8f0;
+            text-align: center;
+            color: #718096;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Privacy Policy for Browser Pet Companion</h1>
+        <p class="last-updated"><strong>Last Updated:</strong> December 2024</p>
+
+        <h2>Introduction</h2>
+        <p>Browser Pet Companion ("we", "our", "the extension") is a Chrome browser extension that helps users manage their browser tabs with a friendly pet companion. This privacy policy explains how we handle your data.</p>
+
+        <h2>Data Collection and Storage</h2>
+        
+        <h3>What We Store Locally</h3>
+        <p>Browser Pet Companion stores the following data <strong>exclusively on your device</strong> using Chrome's local storage:</p>
+        <ul>
+            <li><strong>Tab Information</strong>: URLs, page titles, domains, and active time for open tabs</li>
+            <li><strong>Pet Configuration</strong>: Your pet's name, appearance, personality settings, and generated icons</li>
+            <li><strong>Nest Archive</strong>: Archived tabs (URLs, titles, domains) that you've closed</li>
+            <li><strong>Tab Categories</strong>: Your tab categorization rules and preferences</li>
+            <li><strong>Settings</strong>: Notification preferences and extension settings</li>
+        </ul>
+
+        <h3>What We Do NOT Collect</h3>
+        <ul>
+            <li>❌ We do NOT send any data to external servers</li>
+            <li>❌ We do NOT track your browsing history beyond what's needed for tab management</li>
+            <li>❌ We do NOT share data with third parties</li>
+            <li>❌ We do NOT collect personal information</li>
+            <li>❌ We do NOT use analytics or tracking services</li>
+        </ul>
+
+        <h2>Third-Party Services</h2>
+        
+        <h3>Hugging Face Inference API</h3>
+        <p>Browser Pet Companion uses the Hugging Face Inference API (free tier) to generate AI pet avatars.</p>
+        <ul>
+            <li><strong>What is sent</strong>: Pet description prompts (e.g., "a cute cat with a hat")</li>
+            <li><strong>What is received</strong>: Generated pet images</li>
+            <li><strong>Data retention</strong>: Images are generated on-demand and stored locally on your device. Hugging Face does not store your prompts or images.</li>
+            <li><strong>Privacy</strong>: Hugging Face's privacy policy: <a href="https://huggingface.co/privacy" target="_blank">https://huggingface.co/privacy</a></li>
+        </ul>
+        <p><strong>Note</strong>: If the Hugging Face API is unavailable, the extension automatically uses SVG-based pet generation, which works entirely offline.</p>
+
+        <h2>Permissions Explained</h2>
+        <p>Browser Pet Companion requests the following permissions:</p>
+        <ul>
+            <li><span class="highlight"><strong>`tabs`</strong></span>: To track open tabs, detect duplicate/zombie tabs, and help manage tab clutter</li>
+            <li><span class="highlight"><strong>`storage`</strong></span>: To save your pet configuration, preferences, and archived tabs locally</li>
+            <li><span class="highlight"><strong>`scripting`</strong></span>: To inject the floating pet companion UI that appears on web pages</li>
+            <li><span class="highlight"><strong>`activeTab`</strong></span>: To access the current tab's URL and title for categorization</li>
+            <li><span class="highlight"><strong>`&lt;all_urls&gt;`</strong></span>: To display the floating pet companion on all websites you visit</li>
+        </ul>
+        <p>All permissions are used solely for the extension's core functionality and no data is transmitted externally.</p>
+
+        <h2>Data Storage Location</h2>
+        <p>All data is stored locally on your device using Chrome's <span class="highlight">chrome.storage.local</span> API. Data is never transmitted to external servers or cloud services.</p>
+
+        <h2>Data Deletion</h2>
+        <p>You can delete all extension data at any time by:</p>
+        <ol>
+            <li>Uninstalling the extension (removes all stored data)</li>
+            <li>Using Chrome's "Clear browsing data" feature for extensions</li>
+            <li>Resetting the extension in Chrome's extension settings</li>
+        </ol>
+
+        <h2>Children's Privacy</h2>
+        <p>Browser Pet Companion is not intended for children under 13. We do not knowingly collect data from children.</p>
+
+        <h2>Changes to This Privacy Policy</h2>
+        <p>We may update this privacy policy from time to time. The "Last Updated" date at the top indicates when changes were made. Continued use of the extension after changes constitutes acceptance of the updated policy.</p>
+
+        <h2>Contact</h2>
+        <p>If you have questions about this privacy policy or how your data is handled, please contact us through the <a href="https://github.com/cherepashka123/browser-pet-companion" target="_blank">GitHub repository</a>.</p>
+
+        <h2>Your Rights</h2>
+        <p>You have the right to:</p>
+        <ul>
+            <li>Access your stored data (via Chrome's storage API or extension settings)</li>
+            <li>Delete your data (by uninstalling the extension)</li>
+            <li>Understand how your data is used (this privacy policy)</li>
+            <li>Opt out of features (disable notifications, categorization, etc. in settings)</li>
+        </ul>
+
+        <div class="footer">
+            <p><strong>Browser Pet Companion</strong> - A cozy companion for your browser tabs.</p>
+        </div>
+    </div>
+</body>
+</html>
+
