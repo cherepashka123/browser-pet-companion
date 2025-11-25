@@ -95,13 +95,19 @@
         <h2>Third-Party Services</h2>
 
         <h3>AI Image Generation</h3>
-        <p>Browser Pet Companion uses <strong>Hugging Face Inference API</strong> to generate custom pet avatars:</p>
+        <p>Browser Pet Companion uses multiple <strong>free AI services</strong> to generate custom pet avatars:</p>
         <ul>
-            <li><strong>Service</strong>: Hugging Face Inference API (api-inference.huggingface.co)</li>
+            <li><strong>Services Used</strong>: 
+                <ul>
+                    <li>Pollinations AI (image.pollinations.ai)</li>
+                    <li>Prodia API (api.prodia.com)</li>
+                    <li>Dezgo API (api.dezgo.com)</li>
+                </ul>
+            </li>
             <li><strong>Data Sent</strong>: Only text prompts describing your pet (e.g., "cute cat with blue colors")</li>
             <li><strong>Purpose</strong>: Generate custom pet avatar images</li>
-            <li><strong>Data Retention</strong>: Hugging Face may temporarily cache requests per their terms</li>
-            <li><strong>Fallback</strong>: If AI generation fails, we use locally generated SVG graphics</li>
+            <li><strong>Data Retention</strong>: Services may temporarily cache requests per their terms</li>
+            <li><strong>Fallback</strong>: If all AI services fail, we use locally generated SVG graphics</li>
             <li><strong>User Control</strong>: You can regenerate or change your pet at any time</li>
         </ul>
         
@@ -116,7 +122,7 @@
             <li><strong>"storage"</strong>: To save your pet configuration and preferences locally</li>
             <li><strong>"scripting"</strong>: To display the floating pet on web pages</li>
             <li><strong>"activeTab"</strong>: To interact with the current tab when you use the extension</li>
-            <li><strong>Hugging Face API access</strong>: Only for AI pet generation (optional feature)</li>
+            <li><strong>AI Service APIs</strong>: Only for AI pet generation (optional feature with SVG fallback)</li>
         </ul>
 
         <h2>Data Security</h2>

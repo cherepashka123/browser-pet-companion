@@ -49,7 +49,7 @@ Your pet companion displays 7 different emotions:
 
 🛠 **TECHNICAL EXCELLENCE:**
 • Built with modern Chrome Extension Manifest V3 for security and performance
-• Uses multiple AI services (Pollinations, Hugging Face) with intelligent SVG fallbacks
+• Uses multiple reliable AI services (Pollinations, Prodia, Dezgo) with intelligent SVG fallbacks
 • Real-time tab monitoring with minimal resource usage
 • Cross-platform compatibility and responsive design
 • Open source codebase for transparency and community contributions

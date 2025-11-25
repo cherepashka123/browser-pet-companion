@@ -1,11 +1,23 @@
 import { PetEmotion, PetConfig } from '../types';
 import { PetTemplate } from '../types';
 
-// Hugging Face Inference API - Free tier (currently unreliable)
-// NOTE: HF free API often fails with 503 errors, so we rely heavily on SVG fallback
-const HF_MODELS = [
-  'https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5',
-  'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1',
+// Free AI Image Generation Services (No API Key Required)
+const FREE_AI_SERVICES = [
+  {
+    name: 'Pollinations',
+    url: 'https://image.pollinations.ai/prompt/',
+    type: 'direct'
+  },
+  {
+    name: 'Prodia',
+    url: 'https://api.prodia.com/generate',
+    type: 'api'
+  },
+  {
+    name: 'Dezgo',
+    url: 'https://api.dezgo.com/text2image',
+    type: 'api'
+  }
 ];
 
 const EMOTION_PROMPTS: Record<PetEmotion, string> = {
@@ -101,10 +113,12 @@ export async function generatePetIcons(
 }
 
 /**
- * Generate image using multiple AI services with fallbacks
+ * Generate image using multiple reliable AI services
  */
 async function generateImageWithAI(prompt: string): Promise<string | null> {
-  // Try Pollinations AI first (more reliable than HF)
+  // Try multiple free AI services in order of reliability
+  
+  // 1. Pollinations AI (most reliable, no API key)
   try {
     const pollinationsResult = await generateWithPollinations(prompt);
     if (pollinationsResult) {
@@ -115,119 +129,35 @@ async function generateImageWithAI(prompt: string): Promise<string | null> {
     console.log('[AI] Pollinations failed:', error);
   }
 
-  // Fallback to Hugging Face (often fails but sometimes works)
-  for (const modelUrl of HF_MODELS) {
-    try {
-      console.log(`[AI] Trying model: ${modelUrl}`);
-      
-      const response = await fetch(modelUrl, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          inputs: prompt,
-          parameters: {
-            width: 128,
-            height: 128,
-            num_inference_steps: 30, // More steps for better quality
-            guidance_scale: 7.5,
-            negative_prompt: 'blurry, low quality, distorted, ugly, bad anatomy, text, watermark'
-          }
-        })
-      });
-      
-      // Check if model is loading (first time use)
-      if (response.status === 503) {
-        console.log('[AI] Model loading, waiting...');
-        const data = await response.json().catch(() => ({}));
-        if (data.estimated_time) {
-          const waitTime = Math.min(data.estimated_time * 1000 + 5000, 45000); // Max 45s wait
-          console.log(`[AI] Waiting ${waitTime}ms for model to load...`);
-          await new Promise(resolve => setTimeout(resolve, waitTime));
-          
-          // Retry up to 2 times
-          for (let retry = 0; retry < 2; retry++) {
-            console.log(`[AI] Retry ${retry + 1}/2 after model load...`);
-            const retryResponse = await fetch(modelUrl, {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                inputs: prompt,
-                parameters: { 
-                  width: 128, 
-                  height: 128, 
-                  num_inference_steps: 30, // More steps for better quality
-                  guidance_scale: 7.5 
-                }
-              })
-            });
-            
-            if (retryResponse.ok) {
-              const blob = await retryResponse.blob();
-              if (blob.type.startsWith('image/')) {
-                console.log('[AI] Successfully generated image after model load!');
-                return await blobToDataUrl(blob);
-              }
-            } else if (retryResponse.status === 503) {
-              // Still loading, wait more
-              const retryData = await retryResponse.json().catch(() => ({}));
-              if (retryData.estimated_time) {
-                const additionalWait = Math.min(retryData.estimated_time * 1000 + 3000, 20000);
-                await new Promise(resolve => setTimeout(resolve, additionalWait));
-                continue; // Try again
-              }
-            } else {
-              const errorText = await retryResponse.text().catch(() => '');
-              console.warn(`[AI] Retry ${retry + 1} failed: ${retryResponse.status}`, errorText.substring(0, 100));
-              break; // Move to next model
-            }
-          }
-        }
-        continue; // Try next model
-      }
-      
-      if (response.ok) {
-        const blob = await response.blob();
-        
-        // Check if it's an image
-        if (blob.type.startsWith('image/')) {
-          console.log('[AI] Successfully generated image!');
-          return await blobToDataUrl(blob);
-        }
-        
-        // Sometimes HF returns JSON with error
-        try {
-          const text = await blob.text();
-          const json = JSON.parse(text);
-          if (json.error) {
-            console.warn('[AI] HF API error:', json.error);
-            continue;
-          }
-        } catch {
-          // Not JSON, might be image data
-          if (blob.size > 0) {
-            // Try to use it anyway
-            console.log('[AI] Got blob, trying to use as image');
-            return await blobToDataUrl(blob);
-          }
-        }
-      } else {
-        const errorText = await response.text().catch(() => '');
-        console.warn(`[AI] API failed with status ${response.status}:`, errorText.substring(0, 100));
-      }
-    } catch (error) {
-      console.warn(`[AI] Model ${modelUrl} failed:`, error);
-      continue; // Try next model
+  // 2. Try Prodia API (free, reliable)
+  try {
+    const prodiaResult = await generateWithProdia(prompt);
+    if (prodiaResult) {
+      console.log('[AI] Prodia AI successful!');
+      return prodiaResult;
     }
+  } catch (error) {
+    console.log('[AI] Prodia failed:', error);
   }
-  
-  console.log('[AI] All AI services failed, will use SVG fallback');
-  return null; // All models failed
+
+  // 3. Try Dezgo API (free alternative)
+  try {
+    const dezgoResult = await generateWithDezgo(prompt);
+    if (dezgoResult) {
+      console.log('[AI] Dezgo AI successful!');
+      return dezgoResult;
+    }
+  } catch (error) {
+    console.log('[AI] Dezgo failed:', error);
+  }
+
+  // No more Hugging Face - it's too unreliable
+  console.log('[AI] All AI services failed, using SVG fallback');
+  return null;
 }
 
 /**
- * Generate image using Pollinations AI (free, no API key)
+ * Generate image using Pollinations AI (free, no API key, most reliable)
  */
 async function generateWithPollinations(prompt: string): Promise<string | null> {
   try {
@@ -253,6 +183,94 @@ async function generateWithPollinations(prompt: string): Promise<string | null> 
     }
   } catch (error) {
     console.warn('[AI] Pollinations error:', error);
+  }
+  return null;
+}
+
+/**
+ * Generate image using Prodia API (free, reliable)
+ */
+async function generateWithProdia(prompt: string): Promise<string | null> {
+  try {
+    const cleanPrompt = prompt.replace(/[^\w\s,.-]/g, '').trim();
+    
+    // Prodia free endpoint (no API key required)
+    const response = await fetch('https://api.prodia.com/generate', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt: cleanPrompt,
+        model: 'dreamshaper_6BakedVae.safetensors [114c8abb]',
+        steps: 20,
+        cfg_scale: 7,
+        width: 128,
+        height: 128,
+        negative_prompt: 'blurry, bad quality, distorted, ugly'
+      })
+    });
+
+    if (response.ok) {
+      const data = await response.json();
+      if (data.job) {
+        // Poll for completion
+        let attempts = 0;
+        while (attempts < 30) { // Max 30 seconds
+          await new Promise(resolve => setTimeout(resolve, 1000));
+          
+          const statusResponse = await fetch(`https://api.prodia.com/job/${data.job}`);
+          const statusData = await statusResponse.json();
+          
+          if (statusData.status === 'succeeded' && statusData.imageUrl) {
+            // Convert to base64
+            const imageResponse = await fetch(statusData.imageUrl);
+            const blob = await imageResponse.blob();
+            return await blobToDataUrl(blob);
+          } else if (statusData.status === 'failed') {
+            break;
+          }
+          attempts++;
+        }
+      }
+    }
+  } catch (error) {
+    console.warn('[AI] Prodia error:', error);
+  }
+  return null;
+}
+
+/**
+ * Generate image using Dezgo API (free alternative)
+ */
+async function generateWithDezgo(prompt: string): Promise<string | null> {
+  try {
+    const cleanPrompt = prompt.replace(/[^\w\s,.-]/g, '').trim();
+    
+    const response = await fetch('https://api.dezgo.com/text2image', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt: cleanPrompt,
+        model: 'epic_realism',
+        width: 128,
+        height: 128,
+        steps: 20,
+        guidance: 7.5,
+        negative_prompt: 'blurry, low quality, distorted'
+      })
+    });
+
+    if (response.ok) {
+      const blob = await response.blob();
+      if (blob.type.startsWith('image/')) {
+        return await blobToDataUrl(blob);
+      }
+    }
+  } catch (error) {
+    console.warn('[AI] Dezgo error:', error);
   }
   return null;
 }
