@@ -9,12 +9,15 @@ Create a modern, conversion-focused product website for "Browser Pet Companion" 
 ## 📋 Website Requirements
 
 ### **Primary Goal**: Product showcase and lead generation for PM/Marketing portfolio
-### **Target Audience**: 
+
+### **Target Audience**:
+
 - Hiring managers for Product/Marketing roles
 - Potential users interested in productivity tools
 - Tech professionals and productivity enthusiasts
 
 ### **Key Conversion Actions**:
+
 1. Install Chrome extension
 2. Download case study PDF
 3. Contact for PM/Marketing opportunities
@@ -25,9 +28,10 @@ Create a modern, conversion-focused product website for "Browser Pet Companion" 
 ## 🎨 Design & Aesthetic Guidelines
 
 ### **Visual Style**:
+
 - **Modern, clean, and professional** with subtle playful elements
 - **Gradient backgrounds**: Purple to blue (#667eea to #764ba2)
-- **Color palette**: 
+- **Color palette**:
   - Primary: #667eea (Purple-blue)
   - Secondary: #ff6b6b (Coral red)
   - Accent: #4ecdc4 (Teal)
@@ -35,11 +39,13 @@ Create a modern, conversion-focused product website for "Browser Pet Companion" 
   - Background: #f8f9fa (Light gray)
 
 ### **Typography**:
+
 - **Headers**: Inter or Poppins (bold, modern)
 - **Body**: Inter or system fonts (readable, professional)
 - **Font sizes**: Large, readable hierarchy
 
 ### **UI Elements**:
+
 - **Rounded corners** (8-15px border-radius)
 - **Subtle shadows** for depth
 - **Gradient buttons** with hover effects
@@ -47,6 +53,7 @@ Create a modern, conversion-focused product website for "Browser Pet Companion" 
 - **Smooth animations** and transitions
 
 ### **Imagery Style**:
+
 - **Cute, kawaii-style illustrations** for pets
 - **Clean screenshots** with subtle shadows
 - **Icons**: Outlined style, consistent weight
@@ -57,6 +64,7 @@ Create a modern, conversion-focused product website for "Browser Pet Companion" 
 ## 📱 Page Structure & Content
 
 ### **1. HERO SECTION**
+
 ```
 Headline: "Meet Your AI-Powered Browsing Companion 🐾"
 Subheadline: "Transform chaotic tab management into organized productivity with personalized pet companions that adapt to your browsing habits"
@@ -66,12 +74,13 @@ CTA Buttons:
 - [Watch 2-Min Demo] (Secondary)
 - [Download Case Study] (Tertiary)
 
-Hero Visual: 
+Hero Visual:
 - Split screen showing "Before" (messy browser with 20+ tabs) vs "After" (organized tabs with cute pet companion)
 - Animated pet character floating in corner
 ```
 
 ### **2. PROBLEM STATEMENT SECTION**
+
 ```
 Headline: "The Hidden Cost of Tab Chaos"
 
@@ -89,13 +98,14 @@ Pain Points:
 ```
 
 ### **3. SOLUTION OVERVIEW**
+
 ```
 Headline: "Introducing Browser Pet Companion"
 Subheadline: "The first AI-powered extension that makes tab management actually enjoyable"
 
 Key Value Props:
 🤖 "AI-Generated Companions" - Create unique pets from text descriptions
-📊 "Smart Health Monitoring" - Real-time tab analytics and insights  
+📊 "Smart Health Monitoring" - Real-time tab analytics and insights
 🎭 "Emotional Feedback" - Pet emotions reflect your browsing habits
 🧹 "Automated Cleanup" - Safe, intelligent tab organization
 🏷️ "Smart Categorization" - AI learns your browsing patterns
@@ -107,6 +117,7 @@ Interactive Demo:
 ```
 
 ### **4. HOW IT WORKS SECTION**
+
 ```
 Headline: "From Chaos to Companion in 3 Steps"
 
@@ -129,6 +140,7 @@ Visual: Animated flow diagram or step-by-step screenshots
 ```
 
 ### **5. FEATURES DEEP DIVE**
+
 ```
 Feature Cards (6 main features):
 
@@ -176,6 +188,7 @@ Each feature includes:
 ```
 
 ### **6. CASE STUDY SECTION**
+
 ```
 Headline: "Proven Results: 60% Reduction in Tab Clutter"
 
@@ -200,6 +213,7 @@ Research Methodology:
 ```
 
 ### **7. TECHNICAL EXCELLENCE**
+
 ```
 Headline: "Built for Performance & Privacy"
 
@@ -213,12 +227,13 @@ Technical Highlights:
 
 Architecture Diagram:
 - Background scripts
-- Content scripts  
+- Content scripts
 - AI API integration
 - Storage system
 ```
 
 ### **8. PRODUCT MANAGEMENT SHOWCASE**
+
 ```
 Headline: "Product Strategy & Execution"
 
@@ -238,6 +253,7 @@ Product Metrics:
 ```
 
 ### **9. MARKETING STRATEGY**
+
 ```
 Headline: "Marketing & Growth Approach"
 
@@ -257,6 +273,7 @@ Growth Metrics:
 ```
 
 ### **10. ROADMAP & VISION**
+
 ```
 Headline: "The Future of Intelligent Browsing"
 
@@ -277,6 +294,7 @@ Vision Statement:
 ```
 
 ### **11. CALL-TO-ACTION SECTION**
+
 ```
 Headline: "Ready to Transform Your Browsing Experience?"
 
@@ -302,6 +320,7 @@ Trust Signals:
 ## 📊 Analytics & Tracking
 
 ### **Key Metrics to Track**:
+
 - Page views and unique visitors
 - Extension install conversion rate
 - Case study download rate
@@ -310,6 +329,7 @@ Trust Signals:
 - Traffic sources and referrals
 
 ### **Conversion Funnels**:
+
 1. Landing → Demo Video → Install
 2. Landing → Case Study → Contact
 3. Landing → Features → Install
@@ -320,12 +340,14 @@ Trust Signals:
 ## 🛠 Technical Requirements
 
 ### **Performance**:
+
 - Page load speed < 3 seconds
 - Mobile-responsive design
 - SEO optimized (meta tags, structured data)
 - Accessibility compliant (WCAG 2.1)
 
 ### **Integrations**:
+
 - Google Analytics 4
 - Chrome Web Store API (install counts)
 - Email capture (Mailchimp/ConvertKit)
@@ -333,6 +355,7 @@ Trust Signals:
 - Contact forms with validation
 
 ### **Hosting**:
+
 - CDN for fast global loading
 - SSL certificate
 - Custom domain (browserpet.com or similar)
@@ -343,6 +366,7 @@ Trust Signals:
 ## 📝 Content Tone & Voice
 
 ### **Brand Personality**:
+
 - **Professional yet approachable**
 - **Innovative and forward-thinking**
 - **User-focused and empathetic**
@@ -350,6 +374,7 @@ Trust Signals:
 - **Subtly playful** (pet theme)
 
 ### **Writing Style**:
+
 - **Clear and concise** - avoid jargon
 - **Benefit-focused** - emphasize user value
 - **Data-driven** - include specific metrics
@@ -357,6 +382,7 @@ Trust Signals:
 - **Conversational** - friendly but professional
 
 ### **Key Messages**:
+
 1. "Transform tab chaos into organized productivity"
 2. "AI-powered companions that understand your habits"
 3. "Proven results with zero performance impact"
@@ -367,12 +393,14 @@ Trust Signals:
 ## 🎯 SEO Keywords
 
 ### **Primary Keywords**:
+
 - Browser tab management
 - Chrome extension productivity
 - AI-powered browsing
 - Tab organization tool
 
 ### **Long-tail Keywords**:
+
 - "How to organize browser tabs automatically"
 - "AI pet companion for productivity"
 - "Chrome extension for tab management"
@@ -383,6 +411,7 @@ Trust Signals:
 ## 📱 Mobile Considerations
 
 ### **Mobile-First Design**:
+
 - Touch-friendly buttons (44px minimum)
 - Readable text without zooming
 - Fast loading on mobile networks
@@ -390,6 +419,7 @@ Trust Signals:
 - Thumb-friendly interaction zones
 
 ### **Mobile-Specific Features**:
+
 - Click-to-call for contact
 - Mobile-optimized video player
 - Swipeable feature cards
@@ -401,6 +431,7 @@ Trust Signals:
 ## 🔄 A/B Testing Ideas
 
 ### **Elements to Test**:
+
 - Headline variations
 - CTA button colors and text
 - Hero image vs video
@@ -409,6 +440,7 @@ Trust Signals:
 - Contact form length
 
 ### **Success Metrics**:
+
 - Extension install rate
 - Case study downloads
 - Contact form submissions
@@ -420,6 +452,7 @@ Trust Signals:
 ## 📞 Contact & Conversion
 
 ### **Contact Information**:
+
 - Professional email
 - LinkedIn profile
 - Calendar booking link
@@ -427,6 +460,7 @@ Trust Signals:
 - Location (if relevant for roles)
 
 ### **Lead Magnets**:
+
 - Detailed case study PDF
 - Product management template pack
 - "Building Chrome Extensions" guide
@@ -437,6 +471,7 @@ Trust Signals:
 ## 🎨 Visual Assets Needed
 
 ### **Screenshots**:
+
 - Extension popup interface
 - Pet creation flow
 - Dashboard with metrics
@@ -445,6 +480,7 @@ Trust Signals:
 - Before/after browser states
 
 ### **Graphics**:
+
 - Pet character illustrations
 - Feature icons
 - Process flow diagrams
@@ -453,6 +489,7 @@ Trust Signals:
 - Social media assets
 
 ### **Video Content**:
+
 - 2-minute product demo
 - Pet creation walkthrough
 - Feature highlights reel
