@@ -1,13 +1,11 @@
 import { PetEmotion, PetConfig } from '../types';
 import { PetTemplate } from '../types';
 
-// Hugging Face Inference API - Free tier, no API key required for some models
-// Using models optimized for character/icon generation
+// Hugging Face Inference API - Free tier (currently unreliable)
+// NOTE: HF free API often fails with 503 errors, so we rely heavily on SVG fallback
 const HF_MODELS = [
   'https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5',
   'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1',
-  'https://api-inference.huggingface.co/models/CompVis/stable-diffusion-v1-4',
-  'https://api-inference.huggingface.co/models/prompthero/openjourney-v4',
 ];
 
 const EMOTION_PROMPTS: Record<PetEmotion, string> = {
@@ -44,16 +42,16 @@ export async function generatePetIcons(
       // Improved prompt for better AI results
       const fullPrompt = `${basePrompt}, ${emotionPrompt}, cute kawaii chibi character icon, 128x128 pixels, simple clean white background, centered, high quality, detailed`;
       
-      // Try AI generation with longer timeout and multiple attempts for custom pets
+      // Try AI generation but expect it to fail (HF API unreliable)
       let imageData: string | null = null;
-      const maxAttempts = isCustomPet ? 3 : 1; // Try harder for custom pets
+      const maxAttempts = 1; // Reduced attempts since HF API is unreliable
       
       for (let attempt = 0; attempt < maxAttempts && !imageData; attempt++) {
         try {
           console.log(`[AI] Attempt ${attempt + 1}/${maxAttempts} for ${emotion}...`);
           imageData = await Promise.race([
             generateImageWithAI(fullPrompt),
-            new Promise<string | null>((resolve) => setTimeout(() => resolve(null), 30000)) // 30s timeout
+            new Promise<string | null>((resolve) => setTimeout(() => resolve(null), 10000)) // 10s timeout (faster fallback)
           ]);
           
           if (imageData) {
@@ -103,10 +101,21 @@ export async function generatePetIcons(
 }
 
 /**
- * Generate image using Hugging Face Inference API (free, no key required)
+ * Generate image using multiple AI services with fallbacks
  */
 async function generateImageWithAI(prompt: string): Promise<string | null> {
-  // Try each model until one works
+  // Try Pollinations AI first (more reliable than HF)
+  try {
+    const pollinationsResult = await generateWithPollinations(prompt);
+    if (pollinationsResult) {
+      console.log('[AI] Pollinations AI successful!');
+      return pollinationsResult;
+    }
+  } catch (error) {
+    console.log('[AI] Pollinations failed:', error);
+  }
+
+  // Fallback to Hugging Face (often fails but sometimes works)
   for (const modelUrl of HF_MODELS) {
     try {
       console.log(`[AI] Trying model: ${modelUrl}`);
@@ -213,8 +222,39 @@ async function generateImageWithAI(prompt: string): Promise<string | null> {
     }
   }
   
-  console.log('[AI] All models failed, will use SVG fallback');
+  console.log('[AI] All AI services failed, will use SVG fallback');
   return null; // All models failed
+}
+
+/**
+ * Generate image using Pollinations AI (free, no API key)
+ */
+async function generateWithPollinations(prompt: string): Promise<string | null> {
+  try {
+    // Clean and optimize prompt for better results
+    const cleanPrompt = prompt
+      .replace(/[^\w\s,.-]/g, '') // Remove special characters
+      .replace(/\s+/g, ' ') // Normalize spaces
+      .trim();
+    
+    const encodedPrompt = encodeURIComponent(cleanPrompt);
+    const seed = Math.floor(Math.random() * 1000000);
+    const imageUrl = `https://image.pollinations.ai/prompt/${encodedPrompt}?width=128&height=128&seed=${seed}&model=flux&enhance=true`;
+    
+    console.log(`[AI] Trying Pollinations with prompt: ${cleanPrompt}`);
+    
+    // Test if image loads and is valid
+    const response = await fetch(imageUrl, { method: 'HEAD' });
+    if (response.ok && response.headers.get('content-type')?.startsWith('image/')) {
+      // Convert URL to base64 for consistent storage
+      const imageResponse = await fetch(imageUrl);
+      const blob = await imageResponse.blob();
+      return await blobToDataUrl(blob);
+    }
+  } catch (error) {
+    console.warn('[AI] Pollinations error:', error);
+  }
+  return null;
 }
 
 /**
@@ -286,15 +326,70 @@ function generatePersonalizedSVGIcon(
       <ellipse cx="73" cy="90" rx="8" ry="18" fill="url(#petGrad${emotion})"/>
       <ellipse cx="88" cy="85" rx="8" ry="20" fill="url(#petGrad${emotion})"/>
     `;
+  } else if (promptLower.includes('dragon')) {
+    characterType = 'dragon';
+    characterShape = `
+      <ellipse cx="64" cy="70" rx="40" ry="45" fill="url(#petGrad${emotion})"/>
+      <!-- Dragon horns -->
+      <ellipse cx="50" cy="30" rx="6" ry="15" fill="url(#petGrad${emotion})" transform="rotate(-20 50 30)"/>
+      <ellipse cx="78" cy="30" rx="6" ry="15" fill="url(#petGrad${emotion})" transform="rotate(20 78 30)"/>
+      <!-- Wings -->
+      <ellipse cx="35" cy="55" rx="15" ry="25" fill="${accent}" opacity="0.6" transform="rotate(-30 35 55)"/>
+      <ellipse cx="93" cy="55" rx="15" ry="25" fill="${accent}" opacity="0.6" transform="rotate(30 93 55)"/>
+    `;
+  } else if (promptLower.includes('unicorn')) {
+    characterType = 'unicorn';
+    characterShape = `
+      <ellipse cx="64" cy="70" rx="40" ry="45" fill="url(#petGrad${emotion})"/>
+      <!-- Unicorn horn -->
+      <ellipse cx="64" cy="25" rx="4" ry="20" fill="${accent}"/>
+      <!-- Mane -->
+      <ellipse cx="45" cy="35" rx="12" ry="20" fill="${secondary}" opacity="0.7"/>
+      <ellipse cx="83" cy="35" rx="12" ry="20" fill="${secondary}" opacity="0.7"/>
+    `;
+  } else if (promptLower.includes('bear')) {
+    characterType = 'bear';
+    characterShape = `
+      <circle cx="64" cy="70" r="40" fill="url(#petGrad${emotion})"/>
+      <!-- Bear ears -->
+      <circle cx="45" cy="35" r="12" fill="url(#petGrad${emotion})"/>
+      <circle cx="83" cy="35" r="12" fill="url(#petGrad${emotion})"/>
+      <circle cx="45" cy="35" r="6" fill="${accent}"/>
+      <circle cx="83" cy="35" r="6" fill="${accent}"/>
+    `;
   } else {
-    // Default round shape - but add decorative elements based on prompt keywords
+    // Enhanced default with smart decorative elements
     let decorativeElements = '';
+    let mainShape = `<circle cx="64" cy="64" r="48" fill="url(#petGrad${emotion})" stroke="${accent}" stroke-width="2" opacity="0.9"/>`;
+    
+    // Add theme-based decorations
     if (promptLower.includes('astronaut') || promptLower.includes('space')) {
-      decorativeElements = `<circle cx="64" cy="50" r="30" fill="none" stroke="${accent}" stroke-width="2" opacity="0.5" stroke-dasharray="4,4"/>`;
-    } else if (promptLower.includes('nails') || promptLower.includes('polish')) {
-      decorativeElements = `<circle cx="64" cy="64" r="42" fill="url(#petGrad${emotion})" stroke="${accent}" stroke-width="3"/>`;
+      decorativeElements = `
+        <circle cx="64" cy="50" r="30" fill="none" stroke="${accent}" stroke-width="2" opacity="0.5" stroke-dasharray="4,4"/>
+        <circle cx="50" cy="40" r="2" fill="${accent}" opacity="0.8"/>
+        <circle cx="78" cy="45" r="1.5" fill="${accent}" opacity="0.6"/>
+      `;
+    } else if (promptLower.includes('cyber') || promptLower.includes('tech')) {
+      decorativeElements = `
+        <rect x="45" y="45" width="38" height="38" rx="4" fill="none" stroke="${accent}" stroke-width="2" opacity="0.4"/>
+        <circle cx="55" cy="55" r="3" fill="${accent}" opacity="0.6"/>
+        <circle cx="73" cy="73" r="2" fill="${accent}" opacity="0.5"/>
+      `;
+    } else if (promptLower.includes('magic') || promptLower.includes('wizard')) {
+      decorativeElements = `
+        <path d="M 64 20 L 68 35 L 60 35 Z" fill="${accent}" opacity="0.7"/>
+        <circle cx="40" cy="50" r="2" fill="${accent}" opacity="0.8"/>
+        <circle cx="88" cy="60" r="1.5" fill="${accent}" opacity="0.6"/>
+        <path d="M 35 85 L 40 90 L 30 90 Z" fill="${accent}" opacity="0.5"/>
+      `;
+    } else if (promptLower.includes('pirate')) {
+      decorativeElements = `
+        <ellipse cx="64" cy="30" rx="25" ry="8" fill="${accent}" opacity="0.6"/>
+        <circle cx="75" cy="55" r="3" fill="none" stroke="${accent}" stroke-width="2"/>
+      `;
     }
-    characterShape = `<circle cx="64" cy="64" r="48" fill="url(#petGrad${emotion})" stroke="${accent}" stroke-width="2" opacity="0.9"/>${decorativeElements}`;
+    
+    characterShape = mainShape + decorativeElements;
   }
   
   // Emotion-based expressions
