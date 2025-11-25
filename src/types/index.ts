@@ -106,6 +106,7 @@ export interface CategorizationState {
   lastPromptAt?: number;
   promptsShownToday: number;
   dailyLimit: number;
+  promptedDomains: string[]; // Domains we've already asked about (to avoid asking twice)
 }
 
 export interface AppState {

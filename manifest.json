@@ -2,8 +2,8 @@
   "manifest_version": 3,
   "name": "Browser Pet Companion",
   "version": "1.0.0",
-  "description": "A cozy AI-generated pet companion that helps you manage tabs and keeps a Nest Archive",
-  "privacy_policy": "https://cherepashka123.github.io/browser-pet-companion/",
+  "description": "A cozy AI-generated pet companion that helps you manage tabs and keeps a Nest Archive. Uses Hugging Face API for pet generation.",
+  "privacy_policy": "https://cherepashka123.github.io/browser-pet-companion/privacy.html",
   "permissions": [
     "tabs",
     "storage",
@@ -11,7 +11,7 @@
     "activeTab"
   ],
   "host_permissions": [
-    "<all_urls>"
+    "https://api-inference.huggingface.co/*"
   ],
   "background": {
     "service_worker": "dist/background.js",

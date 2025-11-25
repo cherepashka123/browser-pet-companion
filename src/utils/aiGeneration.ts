@@ -2,10 +2,12 @@ import { PetEmotion, PetConfig } from '../types';
 import { PetTemplate } from '../types';
 
 // Hugging Face Inference API - Free tier, no API key required for some models
+// Using models optimized for character/icon generation
 const HF_MODELS = [
   'https://api-inference.huggingface.co/models/runwayml/stable-diffusion-v1-5',
+  'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1',
   'https://api-inference.huggingface.co/models/CompVis/stable-diffusion-v1-4',
-  'https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-2-1'
+  'https://api-inference.huggingface.co/models/prompthero/openjourney-v4',
 ];
 
 const EMOTION_PROMPTS: Record<PetEmotion, string> = {
@@ -31,24 +33,53 @@ export async function generatePetIcons(
   
   console.log(`Generating pet icons for: ${basePrompt}`);
   
-  // Generate each emotion frame
+  // For custom pets, prioritize AI generation - try harder before falling back to SVG
+  const isCustomPet = basePrompt.toLowerCase().includes('cute minimalist') || 
+                      !basePrompt.toLowerCase().match(/\b(cat|dog|bird|bunny|rabbit|robot|cyber|frog)\b/);
+  
+  // Try AI generation first, then fallback to SVG
   for (const emotion of emotions) {
     try {
       const emotionPrompt = EMOTION_PROMPTS[emotion];
-      const fullPrompt = `${basePrompt}, ${emotionPrompt}, minimalist cute character, icon style, 128x128 pixels, simple clean background, centered, kawaii`;
+      // Improved prompt for better AI results
+      const fullPrompt = `${basePrompt}, ${emotionPrompt}, cute kawaii chibi character icon, 128x128 pixels, simple clean white background, centered, high quality, detailed`;
       
-      // Try AI generation first
-      let imageData = await generateImageWithAI(fullPrompt);
+      // Try AI generation with longer timeout and multiple attempts for custom pets
+      let imageData: string | null = null;
+      const maxAttempts = isCustomPet ? 3 : 1; // Try harder for custom pets
       
-      // If AI generation fails, use personalized SVG
+      for (let attempt = 0; attempt < maxAttempts && !imageData; attempt++) {
+        try {
+          console.log(`[AI] Attempt ${attempt + 1}/${maxAttempts} for ${emotion}...`);
+          imageData = await Promise.race([
+            generateImageWithAI(fullPrompt),
+            new Promise<string | null>((resolve) => setTimeout(() => resolve(null), 30000)) // 30s timeout
+          ]);
+          
+          if (imageData) {
+            console.log(`[AI] Successfully generated ${emotion} icon on attempt ${attempt + 1}!`);
+            break;
+          } else if (attempt < maxAttempts - 1) {
+            console.log(`[AI] Attempt ${attempt + 1} failed, retrying...`);
+            await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2s before retry
+          }
+        } catch (error) {
+          console.log(`[AI] Attempt ${attempt + 1} error for ${emotion}:`, error);
+          if (attempt < maxAttempts - 1) {
+            await new Promise(resolve => setTimeout(resolve, 2000));
+          }
+        }
+      }
+      
+      // If AI generation failed or timed out, use personalized SVG
       if (!imageData) {
-        console.log(`AI generation failed for ${emotion}, using personalized SVG`);
+        console.log(`[AI] All attempts failed for ${emotion}, using personalized SVG fallback`);
         imageData = generatePersonalizedSVGIcon(emotion, colors, basePrompt, name);
       }
       
       icons[emotion] = imageData;
       
-      // Small delay to avoid rate limiting
+      // Small delay between generations to avoid rate limiting
       await new Promise(resolve => setTimeout(resolve, 500));
     } catch (error) {
       console.error(`Failed to generate ${emotion} icon:`, error);
@@ -56,6 +87,18 @@ export async function generatePetIcons(
     }
   }
   
+  // Verify all icons were generated
+  const allGenerated = emotions.every(emotion => icons[emotion] && icons[emotion]!.length > 0);
+  if (!allGenerated) {
+    console.error('Some icons failed to generate, using defaults');
+    emotions.forEach(emotion => {
+      if (!icons[emotion] || icons[emotion]!.length === 0) {
+        icons[emotion] = generatePersonalizedSVGIcon(emotion, colors, basePrompt, name || 'Pet');
+      }
+    });
+  }
+  
+  console.log(`Successfully generated ${Object.keys(icons).length} pet icons`);
   return icons as Record<PetEmotion, string>;
 }
 
@@ -66,7 +109,7 @@ async function generateImageWithAI(prompt: string): Promise<string | null> {
   // Try each model until one works
   for (const modelUrl of HF_MODELS) {
     try {
-      console.log(`Trying model: ${modelUrl}`);
+      console.log(`[AI] Trying model: ${modelUrl}`);
       
       const response = await fetch(modelUrl, {
         method: 'POST',
@@ -78,31 +121,57 @@ async function generateImageWithAI(prompt: string): Promise<string | null> {
           parameters: {
             width: 128,
             height: 128,
-            num_inference_steps: 20, // Faster generation
-            guidance_scale: 7.5
+            num_inference_steps: 30, // More steps for better quality
+            guidance_scale: 7.5,
+            negative_prompt: 'blurry, low quality, distorted, ugly, bad anatomy, text, watermark'
           }
         })
       });
       
       // Check if model is loading (first time use)
       if (response.status === 503) {
-        const data = await response.json();
+        console.log('[AI] Model loading, waiting...');
+        const data = await response.json().catch(() => ({}));
         if (data.estimated_time) {
-          // Wait for model to load
-          await new Promise(resolve => setTimeout(resolve, data.estimated_time * 1000 + 2000));
-          // Retry once
-          const retryResponse = await fetch(modelUrl, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              inputs: prompt,
-              parameters: { width: 128, height: 128, num_inference_steps: 20, guidance_scale: 7.5 }
-            })
-          });
-          if (retryResponse.ok) {
-            const blob = await retryResponse.blob();
-            if (blob.type.startsWith('image/')) {
-              return await blobToDataUrl(blob);
+          const waitTime = Math.min(data.estimated_time * 1000 + 5000, 45000); // Max 45s wait
+          console.log(`[AI] Waiting ${waitTime}ms for model to load...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+          
+          // Retry up to 2 times
+          for (let retry = 0; retry < 2; retry++) {
+            console.log(`[AI] Retry ${retry + 1}/2 after model load...`);
+            const retryResponse = await fetch(modelUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                inputs: prompt,
+                parameters: { 
+                  width: 128, 
+                  height: 128, 
+                  num_inference_steps: 30, // More steps for better quality
+                  guidance_scale: 7.5 
+                }
+              })
+            });
+            
+            if (retryResponse.ok) {
+              const blob = await retryResponse.blob();
+              if (blob.type.startsWith('image/')) {
+                console.log('[AI] Successfully generated image after model load!');
+                return await blobToDataUrl(blob);
+              }
+            } else if (retryResponse.status === 503) {
+              // Still loading, wait more
+              const retryData = await retryResponse.json().catch(() => ({}));
+              if (retryData.estimated_time) {
+                const additionalWait = Math.min(retryData.estimated_time * 1000 + 3000, 20000);
+                await new Promise(resolve => setTimeout(resolve, additionalWait));
+                continue; // Try again
+              }
+            } else {
+              const errorText = await retryResponse.text().catch(() => '');
+              console.warn(`[AI] Retry ${retry + 1} failed: ${retryResponse.status}`, errorText.substring(0, 100));
+              break; // Move to next model
             }
           }
         }
@@ -114,7 +183,7 @@ async function generateImageWithAI(prompt: string): Promise<string | null> {
         
         // Check if it's an image
         if (blob.type.startsWith('image/')) {
-          console.log('AI generation successful!');
+          console.log('[AI] Successfully generated image!');
           return await blobToDataUrl(blob);
         }
         
@@ -123,22 +192,28 @@ async function generateImageWithAI(prompt: string): Promise<string | null> {
           const text = await blob.text();
           const json = JSON.parse(text);
           if (json.error) {
-            console.warn('HF API error:', json.error);
+            console.warn('[AI] HF API error:', json.error);
             continue;
           }
         } catch {
-          // Not JSON, continue
+          // Not JSON, might be image data
+          if (blob.size > 0) {
+            // Try to use it anyway
+            console.log('[AI] Got blob, trying to use as image');
+            return await blobToDataUrl(blob);
+          }
         }
       } else {
         const errorText = await response.text().catch(() => '');
-        console.warn(`HF API failed with status ${response.status}:`, errorText.substring(0, 100));
+        console.warn(`[AI] API failed with status ${response.status}:`, errorText.substring(0, 100));
       }
     } catch (error) {
-      console.warn(`Model ${modelUrl} failed:`, error);
+      console.warn(`[AI] Model ${modelUrl} failed:`, error);
       continue; // Try next model
     }
   }
   
+  console.log('[AI] All models failed, will use SVG fallback');
   return null; // All models failed
 }
 
@@ -158,23 +233,68 @@ function generatePersonalizedSVGIcon(
   // Extract character type from prompt (e.g., "cat", "dog", "robot")
   const promptLower = basePrompt.toLowerCase();
   let characterType = 'round';
-  let characterShape = '<circle cx="64" cy="64" r="48" fill="url(#petGrad)" stroke="${accent}" stroke-width="2" opacity="0.9"/>';
+  let characterShape = '';
   
   if (promptLower.includes('cat') || promptLower.includes('feline')) {
     characterType = 'cat';
-    characterShape = '<ellipse cx="64" cy="70" rx="40" ry="45" fill="url(#petGrad)"/><path d="M 50 30 Q 64 20 78 30 L 75 35 Q 64 28 53 35 Z" fill="url(#petGrad)"/><path d="M 90 30 Q 78 20 64 25 L 64 35 Q 75 28 90 35 Z" fill="url(#petGrad)"/>';
+    characterShape = `<ellipse cx="64" cy="70" rx="40" ry="45" fill="url(#petGrad${emotion})"/><path d="M 50 30 Q 64 20 78 30 L 75 35 Q 64 28 53 35 Z" fill="url(#petGrad${emotion})"/><path d="M 90 30 Q 78 20 64 25 L 64 35 Q 75 28 90 35 Z" fill="url(#petGrad${emotion})"/>`;
   } else if (promptLower.includes('dog') || promptLower.includes('puppy')) {
     characterType = 'dog';
-    characterShape = '<ellipse cx="64" cy="70" rx="42" ry="45" fill="url(#petGrad)"/><ellipse cx="50" cy="30" rx="8" ry="12" fill="url(#petGrad)"/><ellipse cx="78" cy="30" rx="8" ry="12" fill="url(#petGrad)"/>';
+    characterShape = `<ellipse cx="64" cy="70" rx="42" ry="45" fill="url(#petGrad${emotion})"/><ellipse cx="50" cy="30" rx="8" ry="12" fill="url(#petGrad${emotion})"/><ellipse cx="78" cy="30" rx="8" ry="12" fill="url(#petGrad${emotion})"/>`;
   } else if (promptLower.includes('bird') || promptLower.includes('chicken')) {
     characterType = 'bird';
-    characterShape = '<ellipse cx="64" cy="70" rx="35" ry="40" fill="url(#petGrad)"/><ellipse cx="64" cy="35" rx="25" ry="30" fill="url(#petGrad)"/>';
+    characterShape = `<ellipse cx="64" cy="70" rx="35" ry="40" fill="url(#petGrad${emotion})"/><ellipse cx="64" cy="35" rx="25" ry="30" fill="url(#petGrad${emotion})"/>`;
   } else if (promptLower.includes('bunny') || promptLower.includes('rabbit')) {
     characterType = 'bunny';
-    characterShape = '<ellipse cx="64" cy="75" rx="35" ry="40" fill="url(#petGrad)"/><ellipse cx="50" cy="25" rx="6" ry="18" fill="url(#petGrad)"/><ellipse cx="78" cy="25" rx="6" ry="18" fill="url(#petGrad)"/>';
+    characterShape = `<ellipse cx="64" cy="75" rx="35" ry="40" fill="url(#petGrad${emotion})"/><ellipse cx="50" cy="25" rx="6" ry="18" fill="url(#petGrad${emotion})"/><ellipse cx="78" cy="25" rx="6" ry="18" fill="url(#petGrad${emotion})"/>`;
   } else if (promptLower.includes('robot') || promptLower.includes('cyber')) {
     characterType = 'robot';
-    characterShape = '<rect x="30" y="40" width="68" height="68" rx="8" fill="url(#petGrad)"/><rect x="40" y="50" width="48" height="48" rx="4" fill="${accent}" opacity="0.3"/>';
+    characterShape = `<rect x="30" y="40" width="68" height="68" rx="8" fill="url(#petGrad${emotion})"/><rect x="40" y="50" width="48" height="48" rx="4" fill="${accent}" opacity="0.3"/>`;
+  } else if (promptLower.includes('frog')) {
+    characterType = 'frog';
+    // Frog body shape - wider at bottom
+    const isAstronaut = promptLower.includes('astronaut') || promptLower.includes('space');
+    if (isAstronaut) {
+      // Frog astronaut with helmet
+      characterShape = `
+        <ellipse cx="64" cy="75" rx="38" ry="42" fill="url(#petGrad${emotion})"/>
+        <ellipse cx="64" cy="68" rx="35" ry="38" fill="url(#petGrad${emotion})"/>
+        <!-- Astronaut helmet -->
+        <circle cx="64" cy="50" r="32" fill="none" stroke="${accent}" stroke-width="3" opacity="0.6"/>
+        <ellipse cx="64" cy="45" rx="28" ry="30" fill="${accent}" opacity="0.2"/>
+        <!-- Helmet visor reflection -->
+        <ellipse cx="64" cy="48" rx="20" ry="22" fill="none" stroke="${primary}" stroke-width="1.5" opacity="0.4"/>
+      `;
+    } else {
+      // Regular frog shape
+      characterShape = `
+        <ellipse cx="64" cy="75" rx="38" ry="42" fill="url(#petGrad${emotion})"/>
+        <ellipse cx="64" cy="68" rx="35" ry="38" fill="url(#petGrad${emotion})"/>
+        <!-- Frog eyes bulge -->
+        <ellipse cx="50" cy="50" rx="8" ry="10" fill="url(#petGrad${emotion})"/>
+        <ellipse cx="78" cy="50" rx="8" ry="10" fill="url(#petGrad${emotion})"/>
+      `;
+    }
+  } else if (promptLower.includes('octopus')) {
+    characterType = 'octopus';
+    // Octopus with tentacles
+    characterShape = `
+      <circle cx="64" cy="60" r="35" fill="url(#petGrad${emotion})"/>
+      <!-- Tentacles -->
+      <ellipse cx="40" cy="85" rx="8" ry="20" fill="url(#petGrad${emotion})"/>
+      <ellipse cx="55" cy="90" rx="8" ry="18" fill="url(#petGrad${emotion})"/>
+      <ellipse cx="73" cy="90" rx="8" ry="18" fill="url(#petGrad${emotion})"/>
+      <ellipse cx="88" cy="85" rx="8" ry="20" fill="url(#petGrad${emotion})"/>
+    `;
+  } else {
+    // Default round shape - but add decorative elements based on prompt keywords
+    let decorativeElements = '';
+    if (promptLower.includes('astronaut') || promptLower.includes('space')) {
+      decorativeElements = `<circle cx="64" cy="50" r="30" fill="none" stroke="${accent}" stroke-width="2" opacity="0.5" stroke-dasharray="4,4"/>`;
+    } else if (promptLower.includes('nails') || promptLower.includes('polish')) {
+      decorativeElements = `<circle cx="64" cy="64" r="42" fill="url(#petGrad${emotion})" stroke="${accent}" stroke-width="3"/>`;
+    }
+    characterShape = `<circle cx="64" cy="64" r="48" fill="url(#petGrad${emotion})" stroke="${accent}" stroke-width="2" opacity="0.9"/>${decorativeElements}`;
   }
   
   // Emotion-based expressions
@@ -232,7 +352,7 @@ function generatePersonalizedSVGIcon(
       <!-- Cute doodle background elements -->
       ${expr.doodles}
       <!-- Main pet body (character-specific shape) -->
-      ${characterShape.replace('url(#petGrad)', `url(#petGrad${emotion})`).replace('${accent}', accent)}
+      ${characterShape}
       <!-- Face details -->
       ${expr.eyes}
       ${expr.mouth}
@@ -266,9 +386,12 @@ export async function generateCustomPet(
   colors: string,
   name: string
 ): Promise<Record<PetEmotion, string>> {
-  // Build a detailed prompt from user input
-  const basePrompt = `cute minimalist ${description}, ${vibe}, soft pastel ${colors}, kawaii style, simple clean background, icon`;
-  console.log(`Generating custom pet: ${basePrompt}`);
+  // Build a detailed, descriptive prompt from user input for better AI results
+  // Include all user details to ensure AI captures the full description
+  const colorDesc = colors ? `, ${colors} colors` : '';
+  const vibeDesc = vibe ? `, ${vibe} personality` : '';
+  const basePrompt = `cute kawaii chibi ${description}${vibeDesc}${colorDesc}, minimalist character icon, simple clean white background, centered, high quality`;
+  console.log(`[AI] Generating custom pet with prompt: ${basePrompt}`);
   return generatePetIcons(basePrompt, name, parseColors(colors));
 }
 
@@ -284,3 +407,4 @@ function parseColors(colorString: string): { primary: string; secondary: string 
   }
   return undefined;
 }
+

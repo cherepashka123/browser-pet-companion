@@ -332,7 +332,8 @@ async function showCategoryPrompt(
   const tabObj = await chrome.tabs.get(tabId);
   if (!tabObj.id) return;
 
-  await incrementPromptCount();
+  // Track that we're prompting for this domain (so we don't ask again)
+  await incrementPromptCount(tab.domain);
 
   chrome.tabs
     .sendMessage(tabObj.id, {

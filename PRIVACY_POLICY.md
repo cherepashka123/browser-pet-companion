@@ -28,6 +28,21 @@ Browser Pet Companion stores the following data **exclusively on your device** u
 
 ## Third-Party Services
 
+### AI Image Generation
+
+Browser Pet Companion uses **Hugging Face Inference API** to generate custom pet avatars:
+
+- **Service**: Hugging Face Inference API (api-inference.huggingface.co)
+- **Data Sent**: Only text prompts describing your pet (e.g., "cute cat with blue colors")
+- **Purpose**: Generate custom pet avatar images
+- **Data Retention**: Hugging Face may temporarily cache requests per their terms
+- **Fallback**: If AI generation fails, we use locally generated SVG graphics
+- **User Control**: You can regenerate or change your pet at any time
+
+**Important**: No personal data, browsing history, or tab content is ever sent to external services.
+
+## Third-Party Services
+
 ### Hugging Face Inference API
 
 Browser Pet Companion uses the Hugging Face Inference API (free tier) to generate AI pet avatars. 

@@ -11,7 +11,8 @@ const DEFAULT_SETTINGS: CategorizationSettings = {
 const DEFAULT_STATE: CategorizationState = {
   domainRules: [],
   promptsShownToday: 0,
-  dailyLimit: 20
+  dailyLimit: 20,
+  promptedDomains: [] // Track domains we've already asked about
 };
 
 export async function getCategorizationSettings(): Promise<CategorizationSettings> {
@@ -76,10 +77,21 @@ export async function updateDomainRuleConfidence(
   await saveCategorizationState(catState);
 }
 
-export async function incrementPromptCount(): Promise<void> {
+export async function incrementPromptCount(domain?: string): Promise<void> {
   const catState = await getCategorizationState();
   catState.promptsShownToday += 1;
   catState.lastPromptAt = Date.now();
+  
+  // Track that we've prompted for this domain (so we don't ask again)
+  if (domain) {
+    if (!catState.promptedDomains) {
+      catState.promptedDomains = [];
+    }
+    if (!catState.promptedDomains.includes(domain)) {
+      catState.promptedDomains.push(domain);
+    }
+  }
+  
   await saveCategorizationState(catState);
 }
 

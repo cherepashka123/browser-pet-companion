@@ -208,6 +208,12 @@ export function shouldPromptForCategory(
   // Check if domain is muted
   if (settings.mutedDomains.includes(tab.domain)) return false;
   
+  // IMPORTANT: Only ask once per domain - check if we've already prompted for this domain
+  const promptedDomains = state.promptedDomains || [];
+  if (promptedDomains.includes(tab.domain)) {
+    return false; // Already asked about this domain, don't ask again
+  }
+  
   // Check if we've hit the daily limit
   if (state.promptsShownToday >= state.dailyLimit) return false;
   
@@ -224,13 +230,13 @@ export function shouldPromptForCategory(
     }
   }
   
-  // Check if domain already has a rule
-  const hasRule = state.domainRules.some((rule: DomainRule) => 
-    tab.domain.includes(rule.domain) || rule.domain === tab.domain
+  // Check if domain already has a rule (auto-apply means we don't need to ask)
+  const hasAutoRule = state.domainRules.some((rule: DomainRule) => 
+    (tab.domain.includes(rule.domain) || rule.domain === tab.domain) && rule.autoApply
   );
   
-  if (settings.askForNewDomainsOnly && hasRule) {
-    return false;
+  if (hasAutoRule) {
+    return false; // Already has auto-apply rule, no need to ask
   }
   
   // Only prompt if confidence is reasonable but not certain

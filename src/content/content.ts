@@ -28,6 +28,14 @@ interface CategoryPromptMessage {
   petName: string;
 }
 
+interface ShowFloatingPetMessage {
+  type: 'SHOW_FLOATING_PET';
+}
+
+interface HideFloatingPetMessage {
+  type: 'HIDE_FLOATING_PET';
+}
+
 // Create nudge container
 let nudgeContainer: HTMLDivElement | null = null;
 
@@ -112,7 +120,7 @@ function showNudge(message: string): void {
 }
 
 // Listen for messages from background script
-chrome.runtime.onMessage.addListener((message: NudgeMessage | PetUpdateMessage | PetInitMessage | CategoryPromptMessage, sender, sendResponse) => {
+chrome.runtime.onMessage.addListener((message: NudgeMessage | PetUpdateMessage | PetInitMessage | CategoryPromptMessage | ShowFloatingPetMessage | HideFloatingPetMessage, sender, sendResponse) => {
   if (message.type === 'SHOW_NUDGE') {
     showNudge((message as NudgeMessage).message);
   } else if (message.type === 'INIT_FLOATING_PET') {
@@ -121,6 +129,14 @@ chrome.runtime.onMessage.addListener((message: NudgeMessage | PetUpdateMessage |
   } else if (message.type === 'UPDATE_FLOATING_PET') {
     const updateMsg = message as PetUpdateMessage;
     updateFloatingPet(updateMsg.metrics, updateMsg.petImage);
+  } else if (message.type === 'SHOW_FLOATING_PET') {
+    chrome.runtime.sendMessage({ type: 'GET_PET_DATA' }, (response) => {
+      if (response && response.petImage) {
+        initializeFloatingPet(response.petImage, response.emotion);
+      }
+    });
+  } else if (message.type === 'HIDE_FLOATING_PET') {
+    removeFloatingPet();
   } else if (message.type === 'SHOW_CATEGORY_PROMPT') {
     const promptMsg = message as CategoryPromptMessage;
     showCategoryPrompt({

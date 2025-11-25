@@ -6,16 +6,23 @@ let currentEmotion: PetEmotion = 'CONTENT';
 let petImageUrl: string = '';
 
 export function initializeFloatingPet(petImage: string, emotion: PetEmotion) {
-  console.log('[Floating Pet] Initializing with emotion:', emotion, 'has image:', !!petImage);
-  petImageUrl = petImage || generateDefaultPetSVG();
-  currentEmotion = emotion;
-  
-  // Ensure body exists before creating
-  if (document.body) {
-    console.log('[Floating Pet] Body exists, creating pet now');
-    createFloatingPet();
-    updatePetEmotion(emotion);
-  } else {
+  // Check if user dismissed the pet
+  chrome.storage.local.get(['floatingPetDismissed'], (result) => {
+    if (result.floatingPetDismissed) {
+      console.log('[Floating Pet] User dismissed pet, not showing');
+      return;
+    }
+    
+    console.log('[Floating Pet] Initializing with emotion:', emotion, 'has image:', !!petImage);
+    petImageUrl = petImage || generateDefaultPetSVG();
+    currentEmotion = emotion;
+    
+    // Ensure body exists before creating
+    if (document.body) {
+      console.log('[Floating Pet] Body exists, creating pet now');
+      createFloatingPet();
+      updatePetEmotion(emotion);
+    } else {
     console.log('[Floating Pet] Waiting for body...');
     // Wait for body
     const checkBody = setInterval(() => {
@@ -36,20 +43,32 @@ export function initializeFloatingPet(petImage: string, emotion: PetEmotion) {
         updatePetEmotion(emotion);
       }
     }, 5000);
-  }
+    }
+  });
 }
 
 export function updateFloatingPet(metrics: TabHealthMetrics, petImage: string) {
-  currentEmotion = metrics.currentEmotion;
-  petImageUrl = petImage;
-  
-  if (!floatingPetContainer) {
-    createFloatingPet();
-  }
-  
-  updatePetEmotion(metrics.currentEmotion);
-  updatePetPosition(metrics);
-  showStatusIndicator(metrics);
+  // Check if user dismissed the pet
+  chrome.storage.local.get(['floatingPetDismissed'], (result) => {
+    if (result.floatingPetDismissed) {
+      // User dismissed it, don't show or update
+      if (floatingPetContainer) {
+        removeFloatingPet();
+      }
+      return;
+    }
+    
+    currentEmotion = metrics.currentEmotion;
+    petImageUrl = petImage;
+    
+    if (!floatingPetContainer) {
+      createFloatingPet();
+    }
+    
+    updatePetEmotion(metrics.currentEmotion);
+    updatePetPosition(metrics);
+    showStatusIndicator(metrics);
+  });
 }
 
 function createFloatingPet() {
@@ -157,9 +176,53 @@ function createFloatingPet() {
     hidePetTooltip();
   });
   
-  // Click to open extension popup
-  floatingPetContainer.addEventListener('click', () => {
-    chrome.runtime.sendMessage({ type: 'OPEN_POPUP' });
+  // Add close button
+  const closeButton = document.createElement('div');
+  closeButton.innerHTML = '×';
+  closeButton.style.cssText = `
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    font-weight: bold;
+    color: #666;
+    cursor: pointer;
+    z-index: 999998;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  `;
+  closeButton.addEventListener('mouseenter', () => {
+    closeButton.style.background = 'rgba(255, 100, 100, 0.9)';
+    closeButton.style.color = 'white';
+    closeButton.style.transform = 'scale(1.1)';
+  });
+  closeButton.addEventListener('mouseleave', () => {
+    closeButton.style.background = 'rgba(255, 255, 255, 0.9)';
+    closeButton.style.color = '#666';
+    closeButton.style.transform = 'scale(1)';
+  });
+  closeButton.addEventListener('click', (e) => {
+    e.stopPropagation();
+    removeFloatingPet();
+    // Store dismissal preference
+    chrome.storage.local.set({ floatingPetDismissed: true });
+  });
+  
+  floatingPetContainer.appendChild(closeButton);
+  
+  // Click to open extension popup (only if not clicking close button)
+  floatingPetContainer.addEventListener('click', (e) => {
+    if (e.target !== closeButton && !closeButton.contains(e.target as Node)) {
+      chrome.runtime.sendMessage({ type: 'OPEN_POPUP' });
+    }
   });
   
   try {
