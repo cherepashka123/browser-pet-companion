@@ -132,26 +132,30 @@ export function TabNests({ onTabSelect }: TabNestsProps) {
                 <div className="nest-tabs">
                   {nestTabs.map(tab => (
                     <div key={tab.tabId} className="nest-tab-item">
-                      <img 
-                        src={tab.favicon || ''} 
-                        alt="" 
-                        className="tab-favicon"
-                        onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
-                      />
-                      <div className="tab-info">
-                        <div className="tab-title">{tab.title || 'Untitled'}</div>
-                        <div className="tab-domain">{tab.domain}</div>
+                      <div className="tab-left-content">
+                        <img 
+                          src={tab.favicon || ''} 
+                          alt="" 
+                          className="tab-favicon"
+                          onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                        />
+                        <div className="tab-info">
+                          <div className="tab-title">{tab.title || 'Untitled'}</div>
+                          <div className="tab-domain">{tab.domain}</div>
+                        </div>
                       </div>
-                      <select
-                        className="category-select"
-                        value={tab.categoryId || 'unsorted'}
-                        onChange={(e) => handleChangeCategory(tab.tabId, e.target.value as TabCategoryId)}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        {TAB_NESTS.map(n => (
-                          <option key={n.id} value={n.id}>{n.name}</option>
-                        ))}
-                      </select>
+                      <div className="tab-right-content">
+                        <select
+                          className="category-select"
+                          value={tab.categoryId || 'unsorted'}
+                          onChange={(e) => handleChangeCategory(tab.tabId, e.target.value as TabCategoryId)}
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {TAB_NESTS.map(n => (
+                            <option key={n.id} value={n.id}>{n.name}</option>
+                          ))}
+                        </select>
+                      </div>
                     </div>
                   ))}
                 </div>

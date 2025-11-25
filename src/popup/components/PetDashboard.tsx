@@ -198,6 +198,7 @@ export function PetDashboard({ pet, metrics, onMetricsRefresh, onArchiveUpdate }
         <button className="auto-clean-button" onClick={handleAutoClean} disabled={processing || (metrics.zombieTabs.length === 0 && metrics.duplicateGroups.length === 0)}>
           {processing ? 'Cleaning...' : 'Let my pet clean safely'}
         </button>
+        
       </div>
     </div>
   );

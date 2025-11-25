@@ -116,18 +116,18 @@ export function PetCreation({ onPetCreated }: PetCreationProps) {
     return (
       <div className="pet-creation">
         <div className="creation-header">
-          <h1>Create Your Pet Companion</h1>
+          <h1>Create Your Pet <span className="cursive">Companion</span></h1>
           <p>Choose how you'd like to create your pet</p>
         </div>
         <div className="creation-options">
           <button className="creation-option" onClick={() => setMode('custom')}>
             <div className="creation-option-icon"></div>
-            <h3>Describe Your Own</h3>
+            <h3>Describe <span className="cursive">Your Own</span></h3>
             <p>Create a custom pet with AI</p>
           </button>
           <button className="creation-option" onClick={() => setMode('template')}>
             <div className="creation-option-icon"></div>
-            <h3>Choose a Template</h3>
+            <h3>Choose a <span className="cursive">Template</span></h3>
             <p>Pick from adorable templates</p>
           </button>
         </div>
@@ -143,10 +143,10 @@ export function PetCreation({ onPetCreated }: PetCreationProps) {
           <h2>Describe Your Pet</h2>
         </div>
         <div className="creation-form">
-          <label>What is your pet? *<input type="text" placeholder="e.g., a fluffy cat" value={customPet.type} onChange={(e) => setCustomPet({ ...customPet, type: e.target.value })} /></label>
-          <label>Describe its vibe, personality, and accessories<textarea placeholder="e.g., loves coffee" value={customPet.description} onChange={(e) => setCustomPet({ ...customPet, description: e.target.value })} rows={3} /></label>
+          <label>What is your pet? *<input type="text" placeholder="e.g., painted nail with a fluffy hat" value={customPet.type} onChange={(e) => setCustomPet({ ...customPet, type: e.target.value })} /></label>
+          <label>Describe its vibe, personality, and accessories<textarea placeholder="e.g., to keep it warm - loves to wear its hat" value={customPet.description} onChange={(e) => setCustomPet({ ...customPet, description: e.target.value })} rows={3} /></label>
           <label>Favorite colors or aesthetic<input type="text" placeholder="e.g., pastel pink and gold" value={customPet.colors} onChange={(e) => setCustomPet({ ...customPet, colors: e.target.value })} /></label>
-          <label>Name your pet *<input type="text" placeholder="e.g., Fluffy" value={customPet.name} onChange={(e) => setCustomPet({ ...customPet, name: e.target.value })} /></label>
+          <label>Name your pet *<input type="text" placeholder="e.g., Snuggles McWarmtoes" value={customPet.name} onChange={(e) => setCustomPet({ ...customPet, name: e.target.value })} /></label>
           <button className="primary-button" onClick={() => setStep('personality')} disabled={!customPet.name || !customPet.type}>Next: Personality →</button>
         </div>
       </div>
@@ -164,13 +164,36 @@ export function PetCreation({ onPetCreated }: PetCreationProps) {
           <p>How talkative should your pet be?</p>
           <div className="personality-options">
             <button className={`personality-option ${personality === 'calm' ? 'active' : ''}`} onClick={() => setPersonality('calm')}>
-              <div className="personality-icon"></div><h3>Calm</h3><p>Minimal messages</p>
+              <div className="personality-icon calm-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <circle cx="12" cy="12" r="3"/>
+                  <path d="M12 1v6m0 6v6m11-7h-6m-6 0H1"/>
+                </svg>
+              </div>
+              <h3>Calm</h3>
+              <p>Minimal messages</p>
             </button>
             <button className={`personality-option ${personality === 'normal' ? 'active' : ''}`} onClick={() => setPersonality('normal')}>
-              <div className="personality-icon"></div><h3>Normal</h3><p>Balanced communication</p>
+              <div className="personality-icon normal-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+                  <path d="M2 17l10 5 10-5"/>
+                  <path d="M2 12l10 5 10-5"/>
+                </svg>
+              </div>
+              <h3>Normal</h3>
+              <p>Balanced communication</p>
             </button>
             <button className={`personality-option ${personality === 'chatty' ? 'active' : ''}`} onClick={() => setPersonality('chatty')}>
-              <div className="personality-icon"></div><h3>Chatty</h3><p>Lots of messages</p>
+              <div className="personality-icon chatty-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                  <path d="M8 9h8"/>
+                  <path d="M8 13h6"/>
+                </svg>
+              </div>
+              <h3>Chatty</h3>
+              <p>Lots of messages</p>
             </button>
           </div>
           <button className="primary-button" onClick={() => setStep('notifications')}>Next: Notifications →</button>
@@ -201,14 +224,13 @@ export function PetCreation({ onPetCreated }: PetCreationProps) {
       <div className="pet-creation">
         <div className="creation-header">
           <button className="back-button" onClick={() => setMode('choice')}>← Back</button>
-          <h2>Choose a Template</h2>
+          <h2>Choose a <span className="cursive">Template</span></h2>
         </div>
         <div className="template-grid">
           {PET_TEMPLATES.map((template) => (
             <button key={template.id} className={`template-card ${selectedTemplate?.id === template.id ? 'selected' : ''}`} onClick={() => setSelectedTemplate(template)}>
               <div className="template-preview" style={{ backgroundColor: template.colors.primary, borderColor: template.colors.secondary }}></div>
               <h3>{template.name}</h3>
-              <p>{template.description}</p>
             </button>
           ))}
         </div>

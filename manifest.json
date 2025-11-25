@@ -3,7 +3,6 @@
   "name": "Browser Pet Companion",
   "version": "1.0.0",
   "description": "A cozy AI-generated pet companion that helps you manage tabs and keeps a Nest Archive. Uses multiple AI services for reliable pet generation.",
-  "privacy_policy": "https://cherepashka123.github.io/browser-pet-companion/privacy.html",
   "permissions": [
     "tabs",
     "storage",
@@ -11,12 +10,10 @@
     "activeTab"
   ],
   "host_permissions": [
-    "https://image.pollinations.ai/*",
-    "https://api.prodia.com/*",
-    "https://api.dezgo.com/*"
+    "https://image.pollinations.ai/*"
   ],
   "background": {
-    "service_worker": "dist/background.js",
+    "service_worker": "background.js",
     "type": "module"
   },
   "action": {
@@ -37,7 +34,7 @@
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
-      "js": ["dist/content.js"],
+      "js": ["content.js"],
       "run_at": "document_idle",
       "all_frames": false
     }

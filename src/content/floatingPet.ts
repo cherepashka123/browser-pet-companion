@@ -6,58 +6,99 @@ let currentEmotion: PetEmotion = 'CONTENT';
 let petImageUrl: string = '';
 
 export function initializeFloatingPet(petImage: string, emotion: PetEmotion) {
-  // Check if user dismissed the pet
-  chrome.storage.local.get(['floatingPetDismissed'], (result) => {
-    if (result.floatingPetDismissed) {
-      console.log('[Floating Pet] User dismissed pet, not showing');
-      return;
+  // Check if user dismissed the pet (with error handling)
+  try {
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get(['floatingPetDismissed'], (result) => {
+        if (chrome.runtime.lastError) {
+          console.log('[Floating Pet] Storage error, proceeding with pet creation');
+          initializePetDirectly(petImage, emotion);
+          return;
+        }
+        
+        if (result.floatingPetDismissed) {
+          console.log('[Floating Pet] User dismissed pet, not showing');
+          return;
+        }
+        
+        initializePetDirectly(petImage, emotion);
+      });
+    } else {
+      console.log('[Floating Pet] Chrome storage not available, proceeding with pet creation');
+      initializePetDirectly(petImage, emotion);
     }
-    
-    console.log('[Floating Pet] Initializing with emotion:', emotion, 'has image:', !!petImage);
-    petImageUrl = petImage || generateDefaultPetSVG();
-    currentEmotion = emotion;
-    
-    // Ensure body exists before creating
+  } catch (error) {
+    console.log('[Floating Pet] Error accessing storage, proceeding with pet creation:', error);
+    initializePetDirectly(petImage, emotion);
+  }
+}
+
+function initializePetDirectly(petImage: string, emotion: PetEmotion) {
+  console.log('[Floating Pet] Initializing with emotion:', emotion, 'has image:', !!petImage);
+  petImageUrl = petImage || generateDefaultPetSVG();
+  currentEmotion = emotion;
+  
+  // Ensure body exists before creating
+  if (document.body) {
+    console.log('[Floating Pet] Body exists, creating pet now');
+    createFloatingPet();
+    updatePetEmotion(emotion);
+  } else {
+  console.log('[Floating Pet] Waiting for body...');
+  // Wait for body
+  const checkBody = setInterval(() => {
     if (document.body) {
-      console.log('[Floating Pet] Body exists, creating pet now');
+      console.log('[Floating Pet] Body found, creating pet');
+      clearInterval(checkBody);
       createFloatingPet();
       updatePetEmotion(emotion);
-    } else {
-    console.log('[Floating Pet] Waiting for body...');
-    // Wait for body
-    const checkBody = setInterval(() => {
-      if (document.body) {
-        console.log('[Floating Pet] Body found, creating pet');
-        clearInterval(checkBody);
-        createFloatingPet();
-        updatePetEmotion(emotion);
-      }
-    }, 100);
-    
-    // Timeout after 5 seconds
-    setTimeout(() => {
-      clearInterval(checkBody);
-      if (document.body) {
-        console.log('[Floating Pet] Timeout reached, creating anyway');
-        createFloatingPet();
-        updatePetEmotion(emotion);
-      }
-    }, 5000);
     }
-  });
+  }, 100);
+  
+  // Timeout after 5 seconds
+  setTimeout(() => {
+    clearInterval(checkBody);
+    if (document.body) {
+      console.log('[Floating Pet] Timeout reached, creating anyway');
+      createFloatingPet();
+      updatePetEmotion(emotion);
+    }
+  }, 5000);
+  }
 }
 
 export function updateFloatingPet(metrics: TabHealthMetrics, petImage: string) {
-  // Check if user dismissed the pet
-  chrome.storage.local.get(['floatingPetDismissed'], (result) => {
-    if (result.floatingPetDismissed) {
-      // User dismissed it, don't show or update
-      if (floatingPetContainer) {
-        removeFloatingPet();
-      }
-      return;
+  // Check if user dismissed the pet (with error handling)
+  try {
+    if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+      chrome.storage.local.get(['floatingPetDismissed'], (result) => {
+        if (chrome.runtime.lastError) {
+          console.log('[Floating Pet] Storage error during update, proceeding');
+          updatePetDirectly(metrics, petImage);
+          return;
+        }
+        
+        if (result.floatingPetDismissed) {
+          // User dismissed it, don't show or update
+          if (floatingPetContainer) {
+            removeFloatingPet();
+          }
+          return;
+        }
+        
+        updatePetDirectly(metrics, petImage);
+      });
+    } else {
+      console.log('[Floating Pet] Chrome storage not available during update, proceeding');
+      updatePetDirectly(metrics, petImage);
     }
-    
+  } catch (error) {
+    console.log('[Floating Pet] Error accessing storage during update, proceeding:', error);
+    updatePetDirectly(metrics, petImage);
+  }
+}
+
+function updatePetDirectly(metrics: TabHealthMetrics, petImage: string) {
     currentEmotion = metrics.currentEmotion;
     petImageUrl = petImage;
     
@@ -68,7 +109,6 @@ export function updateFloatingPet(metrics: TabHealthMetrics, petImage: string) {
     updatePetEmotion(metrics.currentEmotion);
     updatePetPosition(metrics);
     showStatusIndicator(metrics);
-  });
 }
 
 function createFloatingPet() {
@@ -212,8 +252,14 @@ function createFloatingPet() {
   closeButton.addEventListener('click', (e) => {
     e.stopPropagation();
     removeFloatingPet();
-    // Store dismissal preference
-    chrome.storage.local.set({ floatingPetDismissed: true });
+    // Store dismissal preference (with error handling)
+    try {
+      if (typeof chrome !== 'undefined' && chrome.storage && chrome.storage.local) {
+        chrome.storage.local.set({ floatingPetDismissed: true });
+      }
+    } catch (error) {
+      console.log('[Floating Pet] Could not store dismissal preference:', error);
+    }
   });
   
   floatingPetContainer.appendChild(closeButton);

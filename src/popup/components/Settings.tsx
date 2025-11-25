@@ -122,18 +122,24 @@ export function Settings({ pet, preferences, onPreferencesChange, onPetChange }:
         <div className="notification-settings">
           <label className="switch-label">
             <input type="checkbox" checked={localPrefs.showNudges} onChange={(e) => handlePreferenceChange('showNudges', e.target.checked)} />
-            <span>Show cute nudges</span>
-            <p className="setting-description">Receive gentle reminders from your pet</p>
+            <div className="label-content">
+              <span>Show cute nudges</span>
+              <p className="setting-description">Receive gentle reminders from your pet</p>
+            </div>
           </label>
           <label className="switch-label">
             <input type="checkbox" checked={localPrefs.showDailyDigest} onChange={(e) => handlePreferenceChange('showDailyDigest', e.target.checked)} />
-            <span>Show daily tab health digest</span>
-            <p className="setting-description">Get a daily summary of your tab cleanup</p>
+            <div className="label-content">
+              <span>Show daily tab health digest</span>
+              <p className="setting-description">Get a daily summary of your tab cleanup</p>
+            </div>
           </label>
           <label className="switch-label">
             <input type="checkbox" checked={localPrefs.showEmotionalHalo} onChange={(e) => handlePreferenceChange('showEmotionalHalo', e.target.checked)} />
-            <span>Show emotional icon halo</span>
-            <p className="setting-description">See your pet's mood through the icon badge</p>
+            <div className="label-content">
+              <span>Show emotional icon halo</span>
+              <p className="setting-description">See your pet's mood through the icon badge</p>
+            </div>
           </label>
           <label className="switch-label">
             <input 
@@ -154,8 +160,10 @@ export function Settings({ pet, preferences, onPreferencesChange, onPetChange }:
                 });
               }} 
             />
-            <span>Show floating pet on web pages</span>
-            <p className="setting-description">Display your pet companion in the bottom-right corner</p>
+            <div className="label-content">
+              <span>Show floating pet on web pages</span>
+              <p className="setting-description">Display your pet <span className="cursive">companion</span> in the bottom-right corner</p>
+            </div>
           </label>
         </div>
       </div>
