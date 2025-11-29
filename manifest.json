@@ -1,12 +1,11 @@
 {
   "manifest_version": 3,
   "name": "Browser Pet Companion",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A cozy AI-generated pet companion that helps you manage tabs and keeps a Nest Archive. Uses multiple AI services for reliable pet generation.",
   "permissions": [
     "tabs",
     "storage",
-    "scripting",
     "activeTab"
   ],
   "host_permissions": [
